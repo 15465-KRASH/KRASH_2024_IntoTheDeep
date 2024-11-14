@@ -1,38 +1,32 @@
 package org.firstinspires.ftc.teamcode.auto;
 
-import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
 import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.Lift;
-import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Robot;
 
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
-
 @Config
-@Autonomous(name = "Observation Zone", group = "Autonomous")
-public class ObservationZone extends LinearOpMode {
+@Autonomous(name = "Observation Zone Push", group = "Autonomous")
+public class ObservationZone_Push extends LinearOpMode {
 
 
     public void runOpMode() throws InterruptedException{
         Pose2d initialPose = new Pose2d(14.5, -62.5, Math.toRadians(-90));
         Pose2d firstClipPose = new Pose2d(new Vector2d(8,-32.5), Math.toRadians(-90));
-        Pose2d grabOnePose = new Pose2d(new Vector2d(34, -38), Math.toRadians(40));
-        Pose2d dropOnePose = new Pose2d(new Vector2d(40, -45), Math.toRadians(-40));
+        Pose2d firstPushWaypoint = new Pose2d(new Vector2d(36, -36), Math.toRadians(90));
+        Pose2d secondPushWaypoint = new Pose2d(new Vector2d(36, -24), Math.toRadians(90));
+        Pose2d thirdPushWaypoint = new Pose2d(new Vector2d(40, -12), Math.toRadians(90));
+        Pose2d fourthPushWaypoint = new Pose2d(new Vector2d(44, -24), Math.toRadians(90));
+        Pose2d finalPushWaypoint = new Pose2d(new Vector2d(44, -50), Math.toRadians(90));
 
         Robot m_robot = new Robot(hardwareMap, telemetry, initialPose);
 
@@ -46,23 +40,15 @@ public class ObservationZone extends LinearOpMode {
 
         Action placeFirstAction = placeFirst.build();
 
-        TrajectoryActionBuilder grabOne = placeFirst.endTrajectory().fresh()
+        TrajectoryActionBuilder pushOne = placeFirst.endTrajectory().fresh()
                 .setTangent(Math.toRadians(-90))
-                .splineTo(grabOnePose.position, grabOnePose.heading)
-                .lineToX(38);
+                .splineToLinearHeading(firstPushWaypoint, Math.toRadians(90))
+                .splineToLinearHeading(secondPushWaypoint, Math.toRadians(90))
+                .splineToLinearHeading(thirdPushWaypoint, Math.toRadians(0))
+                .splineToLinearHeading(fourthPushWaypoint, Math.toRadians(-90))
+                .splineToLinearHeading(finalPushWaypoint, Math.toRadians(-90));
 
-        Action grabOneAction = new ParallelAction(
-                grabOne.build(),
-                m_robot.intake.delayedHeadDrop()
-        );
-
-        TrajectoryActionBuilder dropOne = grabOne.endTrajectory().fresh()
-                .lineToX(40, new TranslationalVelConstraint(10))
-                .waitSeconds(0.5)
-                .setTangent(Math.toRadians(-90))
-                .splineToLinearHeading(dropOnePose, Math.toRadians(-90));
-
-        Action dropOneAction = dropOne.build();
+        Action pushOneAction = pushOne.build();
 
 
         telemetry.addLine("Starting Position");
@@ -78,15 +64,7 @@ public class ObservationZone extends LinearOpMode {
         m_robot.lift.autoClip(Lift.LiftPositions.HIGH_CLIP_RELEASE);
         m_robot.lift.elevatorPositionByConstant(Lift.LiftPositions.CLIP_PICKUP);
 
-        Actions.runBlocking(grabOneAction);
-
-        m_robot.intake.intakeIn();
-
-        Actions.runBlocking(dropOneAction);
-        m_robot.intake.intakeIn();
-        m_robot.intake.setPackaged();
-
-
+        Actions.runBlocking(pushOneAction);
 
 
         sleep(10);

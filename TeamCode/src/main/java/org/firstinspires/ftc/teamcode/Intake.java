@@ -4,6 +4,9 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.ftc.Encoder;
 import com.acmerobotics.roadrunner.ftc.OverflowEncoder;
 import com.acmerobotics.roadrunner.ftc.RawEncoder;
@@ -207,6 +210,13 @@ public class Intake {
                 return false; //Return false to end
             }
         };
+    }
+
+    public Action delayedHeadDrop(){
+        return new SequentialAction(
+                new SleepAction(0.5),
+                new InstantAction(this::setPickup)
+        );
     }
 
 
