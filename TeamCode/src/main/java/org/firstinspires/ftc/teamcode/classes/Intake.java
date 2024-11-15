@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.classes;
 
 import androidx.annotation.NonNull;
 
@@ -18,7 +18,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.classes.RevColor;
 
 public class Intake {
     private HardwareMap hardwareMap;
@@ -34,10 +33,13 @@ public class Intake {
 
     private int currentExt = 0;
     private int extStep = 5;
-    private int minExt = 400;
+    private int minExt = 500;
     private int minSlowExt = 405;
-    private int maxSlowExt = 1200;
-    private int maxExt = 1400;
+    private int maxSlowExt = 1000;
+    private int maxExt = 1140;
+
+    private int pickupExtension = 1000;
+    private int dumpExtension = 460;
 
     public class HeadPos {
         double headRotLeftPos;
@@ -194,6 +196,14 @@ public class Intake {
         return sampleColor;
     }
 
+    public void setExtensionPickup(){
+        setExtPosition(pickupExtension);
+    }
+
+    public void setExtensionDump(){
+        setExtPosition(dumpExtension);
+    }
+
     //Actions
     public Action grabBlock() {
         return new Action() {
@@ -216,6 +226,16 @@ public class Intake {
         return new SequentialAction(
                 new SleepAction(0.5),
                 new InstantAction(this::setPickup)
+        );
+    }
+
+    public Action deliverToDump(){
+        return new SequentialAction(
+                new InstantAction(this::setExtensionPickup),
+                new SleepAction(0.75),
+                new InstantAction(this::setDump),
+                new InstantAction(this::setExtensionDump),
+                new SleepAction(0.75)
         );
     }
 

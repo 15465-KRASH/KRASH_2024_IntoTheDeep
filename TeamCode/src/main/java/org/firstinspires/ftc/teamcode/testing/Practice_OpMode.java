@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode.testing;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -49,7 +50,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
  */
 
 @TeleOp(name="Practice OpMode", group="Practice")
-//@Disabled
+@Disabled
 public class Practice_OpMode extends LinearOpMode {
     private DcMotorEx leftRear =null;
     private DcMotorEx leftFront =null;

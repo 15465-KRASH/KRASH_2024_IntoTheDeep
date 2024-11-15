@@ -27,48 +27,60 @@ public class MeepMeepTesting {
                 .setDimensions(18, 18)
                 .build();
 
-        Pose2d initialPose = new Pose2d(14.5, -62.5, Math.toRadians(-90));
-        Pose2d firstClipPose = new Pose2d(new Vector2d(8,-32.5), Math.toRadians(-90));
-        Pose2d firstPushWaypoint = new Pose2d(new Vector2d(36, -36), Math.toRadians(90));
-        Pose2d secondPushWaypoint = new Pose2d(new Vector2d(36, -24), Math.toRadians(90));
-        Pose2d thirdPushWaypoint = new Pose2d(new Vector2d(40, -12), Math.toRadians(90));
-        Pose2d fourthPushWaypoint = new Pose2d(new Vector2d(44, -24), Math.toRadians(90));
-        Pose2d finalPushWaypoint = new Pose2d(new Vector2d(44, -50), Math.toRadians(90));
+        Pose2d initialPose = new Pose2d(-14.5, -62.5, Math.toRadians(-90));
+        Pose2d firstClipPose = new Pose2d(new Vector2d(-8,-32.5), Math.toRadians(-90));
 
+        Pose2d parkWaypoint1 = new Pose2d(new Vector2d(-36, -30), Math.toRadians(-90));
+        Pose2d parkWaypoint2 = new Pose2d(new Vector2d(-36, -20), Math.toRadians(-90));
+        Pose2d parkWaypoint3 = new Pose2d(new Vector2d(-24, -12), Math.toRadians(-179.9));
 
+//        Pose2d firstPickupWaypoint1 = new Pose2d(new Vector2d(-30, -33), Math.toRadians(155));
+//
+//        Pose2d dumpPose = new Pose2d(new Vector2d(-53,-54), Math.toRadians(45));
+//
+//        Pose2d secondPickupWaypoint1 = new Pose2d(new Vector2d(-42, -26), Math.toRadians(179.9));
+//
+//        Pose2d thirdPickupWaypoint1 = new Pose2d(new Vector2d(-50, -26), Math.toRadians(179.9));
+
+//
+//        Pose2d secondGrabWaypoint1 = new Pose2d(new Vector2d(35,-50), Math.toRadians(90));
+//        Pose2d secondGrabWaypoint2 = new Pose2d(new Vector2d(35, -62.5), Math.toRadians(90));
 
 
         TrajectoryActionBuilder placeFirst = myBot.getDrive().actionBuilder(initialPose)
-                .waitSeconds(1.5)
+                .waitSeconds(0.75)
                 .setTangent(Math.toRadians(90))
                 .strafeToLinearHeading(firstClipPose.position, firstClipPose.heading)
-                .waitSeconds(1);
+                .waitSeconds(0.5);
 
-        TrajectoryActionBuilder pushOne = placeFirst.endTrajectory().fresh()
+        TrajectoryActionBuilder park = placeFirst.endTrajectory().fresh()
                 .setTangent(Math.toRadians(-90))
-                .splineToLinearHeading(firstPushWaypoint, Math.toRadians(90))
-                .splineToLinearHeading(secondPushWaypoint, Math.toRadians(90))
-                .splineToLinearHeading(thirdPushWaypoint, Math.toRadians(0))
-                .splineToLinearHeading(fourthPushWaypoint, Math.toRadians(-90))
-                .splineToLinearHeading(finalPushWaypoint, Math.toRadians(-90));
+                        .splineToLinearHeading(parkWaypoint1, Math.toRadians(90))
+                .splineToLinearHeading(parkWaypoint3, Math.toRadians(0));
 
 
-//        TrajectoryActionBuilder dropOne = pushOne.endTrajectory().fresh()
-//                .lineToX(40, new TranslationalVelConstraint(10))
-//                .waitSeconds(0.5)
+
+//        TrajectoryActionBuilder grabOne = placeFirst.endTrajectory().fresh()
 //                .setTangent(Math.toRadians(-90))
-////                .splineTo(dropOnePose.position, dropOnePose.heading)
-//                .splineToLinearHeading(dropOnePose, Math.toRadians(-90));
-
-
-
-
-
-
-//        TrajectoryActionBuilder finalPause = grabTwo.endTrajectory().fresh()
-//                .waitSeconds(3)
-//                .turn(Math.toRadians(1));
-
+//                .splineToLinearHeading(firstPickupWaypoint1, firstPickupWaypoint1.heading)
+//                       .lineToX(firstPickupWaypoint1.position.x-3);
+//
+//        TrajectoryActionBuilder dump1 = grabOne.endTrajectory().fresh()
+//                .setTangent(-90)
+//                .splineToLinearHeading(dumpPose, Math.toRadians(-135));
+//
+//        TrajectoryActionBuilder grabTwo = dump1.endTrajectory().fresh()
+//                .setTangent(Math.toRadians(45))
+//                .splineToLinearHeading(secondPickupWaypoint1, Math.toRadians(179.9));
+//
+//        TrajectoryActionBuilder dump2 = grabTwo.endTrajectory().fresh()
+//                .setTangent(-90)
+//                .splineToLinearHeading(dumpPose, Math.toRadians(-135));
+//
+//        TrajectoryActionBuilder grabThree = dump2.endTrajectory().fresh()
+//                .setTangent(Math.toRadians(45))
+//                .splineToLinearHeading(thirdPickupWaypoint1, Math.toRadians(179.9));
+//
 
 
 
@@ -76,7 +88,7 @@ public class MeepMeepTesting {
         myBot.runAction(
                 new SequentialAction(
                         placeFirst.build(),
-                        pushOne.build()
+                        park.build()
 
 
                 ));

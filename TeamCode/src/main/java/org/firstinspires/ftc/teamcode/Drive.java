@@ -37,11 +37,11 @@ import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.classes.ButtonState;
+import org.firstinspires.ftc.teamcode.classes.Lift;
 import org.firstinspires.ftc.teamcode.classes.RevColor;
+import org.firstinspires.ftc.teamcode.classes.Robot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,6 +84,8 @@ public class Drive extends LinearOpMode {
         ButtonState autoIntake = new ButtonState(gamepad2, ButtonState.Button.right_trigger);
         ButtonState autoBackIntake = new ButtonState(gamepad2, ButtonState.Button.right_bumper);
         ButtonState zeroLift = new ButtonState(gamepad1, ButtonState.Button.back);
+
+        m_robot.lift.setFlipperReady();
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -137,9 +139,12 @@ public class Drive extends LinearOpMode {
                 m_robot.intake.setPackaged();
             }
 
-            if (gamepad2.b) {
+            if (gamepad2.b)
+//            {
+//                runningActions.add(m_robot.intake.deliverToDump());
+//            }
+            {
                 m_robot.intake.setDump();
-                m_robot.intake.setDumpExt();
             }
 
             if (autoIntake.newPress()) {

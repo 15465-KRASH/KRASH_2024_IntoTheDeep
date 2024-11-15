@@ -1,9 +1,8 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.classes;
 
 import com.acmerobotics.roadrunner.ftc.Encoder;
 import com.acmerobotics.roadrunner.ftc.OverflowEncoder;
 import com.acmerobotics.roadrunner.ftc.RawEncoder;
-import com.qualcomm.hardware.motors.RevRoboticsCoreHexMotor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -47,7 +46,7 @@ public class Lift {
     //Lift positions
     public static enum LiftPositions {
         HIGH_CLIP(3000),
-        HIGH_CLIP_RELEASE(2300),
+        HIGH_CLIP_RELEASE(2250),
         LOW_CLIP(1000),
         LOW_CLIP_RELEASE(900),
         HIGH_BUCKET(4575),
@@ -197,9 +196,9 @@ public class Lift {
 
     public void autoClip(LiftPositions position){
         elevatorPositionByConstant(position);
-        sleep(750);
+        sleep(800);
         intakeOut();
-        sleep(250);
+        sleep(200);
     }
 
     public void setFlipperReady(){

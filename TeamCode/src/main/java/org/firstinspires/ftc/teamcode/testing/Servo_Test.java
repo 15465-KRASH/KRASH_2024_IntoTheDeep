@@ -34,8 +34,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.Intake;
-import org.firstinspires.ftc.teamcode.Lift;
+import org.firstinspires.ftc.teamcode.classes.Lift;
 import org.firstinspires.ftc.teamcode.classes.ButtonState;
 
 
@@ -55,7 +54,7 @@ import org.firstinspires.ftc.teamcode.classes.ButtonState;
 /**
  * This mode is used to tune servo positions
  */
-//@Disabled
+@Disabled
 @TeleOp(group = "Test")
 public class Servo_Test extends LinearOpMode {
 

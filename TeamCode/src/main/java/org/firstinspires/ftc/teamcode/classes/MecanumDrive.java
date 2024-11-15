@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.classes;
 
 import androidx.annotation.NonNull;
 
@@ -41,6 +41,8 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.teamcode.Drawing;
+import org.firstinspires.ftc.teamcode.Localizer;
 import org.firstinspires.ftc.teamcode.messages.DriveCommandMessage;
 import org.firstinspires.ftc.teamcode.messages.MecanumCommandMessage;
 import org.firstinspires.ftc.teamcode.messages.MecanumLocalizerInputsMessage;
@@ -73,7 +75,7 @@ public class MecanumDrive {
         public double kA = 0.015;
 
         // path profile parameters (in inches)
-        public double maxWheelVel = 50;
+        public double maxWheelVel = 43;
         public double minProfileAccel = -30;
         public double maxProfileAccel = 50;
 
@@ -83,11 +85,11 @@ public class MecanumDrive {
 
         // path controller gains
         public double axialGain = 2.5;
-        public double lateralGain = 1.75;
+        public double lateralGain = 2.0;
         public double headingGain = 1.75; // shared with turn
 
         public double axialVelGain = 0.01;
-        public double lateralVelGain = 0.0;
+        public double lateralVelGain = 0.2;
         public double headingVelGain = 0.0; // shared with turn
     }
 
@@ -486,5 +488,12 @@ public class MecanumDrive {
                 defaultTurnConstraints,
                 defaultVelConstraint, defaultAccelConstraint
         );
+    }
+
+    public void setCoast(){
+        leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
 }
