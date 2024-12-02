@@ -117,26 +117,7 @@ public class RevColor {
     }
 
     public Samples closestColor(){
-//        int colorIndex = 0;
-//        double bestDist = 100;
-//        int j = 0;
-//        for (double[] color : ColorMatches){
-//            double distSum = 0;
-//            for (int i = 0; i < 3; i++){
-//                distSum = distSum + Math.pow((color[i] - hsvValues[i]),2);
-//            }
-//            double dist = Math.pow(distSum, 0.5);
-//            if(dist < bestDist){
-//                colorIndex = j;
-//                bestDist = dist;
-//            }
-//            j++;
-//        }
-//        if(bestDist < matchDistance){
-//            return colorList.get(colorIndex);
-//        } else {
-//            return Samples.NONE;
-//        }
+
         if(hsvValues[0] > kBlueHue - 15 && hsvValues[0] < kBlueHue + 15){
             return Samples.BLUE;
         } else if (hsvValues[0] > kRedHue - 15 && hsvValues[0] < kRedHue + 15){

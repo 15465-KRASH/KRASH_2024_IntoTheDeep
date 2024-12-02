@@ -29,15 +29,19 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import android.widget.Button;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
+import com.acmerobotics.roadrunner.Rotation2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.classes.ButtonState;
 import org.firstinspires.ftc.teamcode.classes.Lift;
 import org.firstinspires.ftc.teamcode.classes.RevColor;
@@ -78,12 +82,27 @@ public class Drive extends LinearOpMode {
         boolean liftInHold = false;
         boolean liftManualOp = true;
 
-        PoseVelocity2d driveControl;
+        double extensionPower;
+        boolean extensionInHold = false;
+        boolean extensionManualOp = true;
+        boolean intakeInAuto = false;
 
+
+        double botAngle;
+        boolean fieldRel = false;
+        double zeroOffset = 0;
+
+        PoseVelocity2d driveControl;
 
         ButtonState autoIntake = new ButtonState(gamepad2, ButtonState.Button.right_trigger);
         ButtonState autoBackIntake = new ButtonState(gamepad2, ButtonState.Button.right_bumper);
         ButtonState zeroLift = new ButtonState(gamepad1, ButtonState.Button.back);
+        ButtonState zeroField = new ButtonState(gamepad1, ButtonState.Button.dpad_down);
+        ButtonState fieldRelOn = new ButtonState(gamepad1, ButtonState.Button.y);
+        ButtonState fieldRelOff = new ButtonState(gamepad1, ButtonState.Button.a);
+
+        ButtonState autoDump = new ButtonState(gamepad2, ButtonState.Button.b);
+
 
         m_robot.lift.setFlipperReady();
 
@@ -101,6 +120,7 @@ public class Drive extends LinearOpMode {
 
 
             m_robot.intake.getSampleColor();
+//            runningActions.add(m_robot.intake.currentLEDAction);
 
             if (gamepad1.right_bumper) {
                 powerScale=1;
@@ -108,13 +128,45 @@ public class Drive extends LinearOpMode {
                 powerScale=.5;
             }
 
+            m_robot.drive.updatePoseEstimate();
+            botAngle = m_robot.drive.pinpoint.getPositionRR().heading.log();
+
+            if(zeroField.newPress()){
+                zeroOffset = -botAngle;
+            }
+
+            botAngle = botAngle + zeroOffset;
+
             Vector2d input = new Vector2d(
                     Math.pow(-gamepad1.left_stick_y, 3) * powerScale,
                     Math.pow(-gamepad1.left_stick_x, 3) * powerScale);
 
+            double cosHeading = Math.cos(botAngle);
+            double sinHeading = Math.sin(botAngle);
+
+            double forward = input.x * cosHeading + input.y * sinHeading;
+            double strafe = -input.x * sinHeading + input.y * cosHeading;
+
+            Vector2d rotatedInput = new Vector2d(forward, strafe);
+
+            if (fieldRelOn.newPress()) {
+                fieldRel = true;
+            } else if (fieldRelOff.newPress()) {
+                fieldRel = false;
+            }
+
+            telemetry.addData("Robot Heading", botAngle);
+            telemetry.addData("Zero Offset", zeroOffset);
+            telemetry.addData("Forward", forward);
+            telemetry.addData("Strafe", strafe);
+
             double rotation = Math.pow(-gamepad1.right_stick_x, 3) * powerScale;
 
             driveControl = new PoseVelocity2d(input, rotation);
+
+            if(fieldRel){
+                driveControl = new PoseVelocity2d(rotatedInput, rotation);
+            }
 
             m_robot.drive.setDrivePowers(driveControl);
             if (zeroLift.newPress()) {
@@ -124,11 +176,23 @@ public class Drive extends LinearOpMode {
             //TODO: Add spin buttons
 
             //Intake Controls
-            if (Math.abs(gamepad2.right_stick_y) > 0.05) {
-                m_robot.intake.runExtension(-gamepad2.right_stick_y);
-            } else {
-                m_robot.intake.runExtension(0);
+//            if (Math.abs(gamepad2.right_stick_y) > 0.05) {
+//                m_robot.intake.runExtension(-gamepad2.right_stick_y);
+//            } else {
+//                m_robot.intake.runExtension(0);
+//            }
+
+            extensionPower = -gamepad2.right_stick_y;
+            if (Math.abs(extensionPower) > 0.05) {
+                m_robot.intake.runExtension(extensionPower);
+                extensionInHold = false;
+                extensionManualOp = true;
+            } else if (extensionManualOp && !extensionInHold) {
+                m_robot.intake.holdExtension();
+                extensionInHold = true;
+                extensionManualOp = false;
             }
+
 
             //Floor positions
             if (gamepad2.a) {
@@ -139,24 +203,29 @@ public class Drive extends LinearOpMode {
                 m_robot.intake.setPackaged();
             }
 
-            if (gamepad2.b)
-//            {
-//                runningActions.add(m_robot.intake.deliverToDump());
-//            }
+            if (autoDump.newPress() && m_robot.lift.safeToDump()) // && m_robot.intake.safeToDump())
             {
-                m_robot.intake.setDump();
+                intakeInAuto = true;
+                runningActions.add(m_robot.intake.deliverToDump());
+            } else if (!gamepad2.b){
+                intakeInAuto = false;
             }
+//            {
+//                m_robot.intake.setDump();
+//            }
 
-            if (autoIntake.newPress()) {
-                m_robot.intake.intakeIn();
-            } else if (autoIntake.getCurrentPress()) {
-                if (m_robot.intake.revColor.closestColor() != RevColor.Samples.NONE) {
+            if (!intakeInAuto) {
+                if (autoIntake.newPress()) {
+                    m_robot.intake.intakeIn();
+                } else if (autoIntake.getCurrentPress()) {
+                    if (m_robot.intake.revColor.closestColor() != RevColor.Samples.NONE) {
+                        m_robot.intake.intakeOff();
+                    }
+                } else if (gamepad2.left_trigger > 0.05) {
+                    m_robot.intake.intakeOut();
+                } else {
                     m_robot.intake.intakeOff();
                 }
-            } else if (gamepad2.left_trigger > 0.05) {
-                m_robot.intake.intakeOut();
-            } else {
-                m_robot.intake.intakeOff();
             }
 
 
@@ -207,6 +276,7 @@ public class Drive extends LinearOpMode {
                     m_robot.lift.runLift(liftPower);
                     liftInHold = false;
                     liftManualOp = true;
+
                 } else if (liftManualOp && !liftInHold) {
                     m_robot.lift.holdElevator();
                     liftInHold = true;

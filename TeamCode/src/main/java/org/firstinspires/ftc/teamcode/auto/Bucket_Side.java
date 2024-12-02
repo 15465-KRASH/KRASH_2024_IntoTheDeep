@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.auto;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
@@ -11,119 +12,85 @@ import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.classes.Lift;
 import org.firstinspires.ftc.teamcode.classes.Robot;
 
 @Config
-@Autonomous(name = "Bucket Side", group = "Autonomous")
+//@Disabled
+@Autonomous(name = "Bucket Side", group = "Autonomous", preselectTeleOp = "Drive")
 public class Bucket_Side extends LinearOpMode {
 
 
-    public void runOpMode() throws InterruptedException{
-        Pose2d initialPose = new Pose2d(-14.5, -62.5, Math.toRadians(-90));
-        Pose2d firstClipPose = new Pose2d(new Vector2d(-8,-32.5), Math.toRadians(-90));
+    public void runOpMode() throws InterruptedException {
+        Pose2d initialPose = new Pose2d(-33, -62.5, Math.toRadians(0));
+        Pose2d veryfirstDumpPose = new Pose2d(new Vector2d(-53, -53), Math.toRadians(45));
+        Pose2d firstDumpPose = new Pose2d(new Vector2d(-53, -53), Math.toRadians(50));
 
-        Pose2d parkWaypoint1 = new Pose2d(new Vector2d(-36, -30), Math.toRadians(-90));
-        Pose2d parkWaypoint2 = new Pose2d(new Vector2d(-36, -20), Math.toRadians(-90));
-        Pose2d parkWaypoint3 = new Pose2d(new Vector2d(-24, -12), Math.toRadians(-179.9));
+        Pose2d firstPickupWP1 = new Pose2d(new Vector2d(-48, -50), Math.toRadians(90));
+        Pose2d firstPickupWP2 = new Pose2d(new Vector2d(-48, -40), Math.toRadians(90));
 
-//        Pose2d firstPickupWaypoint1 = new Pose2d(new Vector2d(-31, -34.5), Math.toRadians(155));
-//
-//        Pose2d dumpPose = new Pose2d(new Vector2d(-53,-53), Math.toRadians(50));
-//
-//        Pose2d secondPickupWaypoint1 = new Pose2d(new Vector2d(-42, -26), Math.toRadians(-179.9));
-//        Pose2d secondPickupWaypoint2 = new Pose2d(new Vector2d(-42, -26), Math.toRadians(-179.9));
-//
-//        Pose2d thirdPickupWaypoint1 = new Pose2d(new Vector2d(-50, -26), Math.toRadians(-179.9));
+        Pose2d secondPickupWP1 = new Pose2d(new Vector2d(-52, -52), Math.toRadians(100));
+        Pose2d secondPickupWP2 = new Pose2d(new Vector2d(-53, -45), Math.toRadians(100));
+
+        Pose2d thirdPickupWP1 = new Pose2d(new Vector2d(-52, -52), Math.toRadians(120));
+        Pose2d thirdPickupWP2 = new Pose2d(new Vector2d(-54, -43), Math.toRadians(120));
 
 
         Robot m_robot = new Robot(hardwareMap, telemetry, initialPose);
 
         m_robot.intake.setPackaged();
 
-        TrajectoryActionBuilder placeFirst = m_robot.drive.actionBuilder(initialPose)
-                .waitSeconds(0.7)
+        TrajectoryActionBuilder dumpFirst = m_robot.drive.actionBuilder(initialPose)
                 .setTangent(Math.toRadians(90))
-                .strafeToLinearHeading(firstClipPose.position, firstClipPose.heading)
-                .waitSeconds(0.25);
+                .splineToLinearHeading(veryfirstDumpPose, Math.toRadians(-135));
 
-        Action placeFirstAction = placeFirst.build();
+        Action dumpFirstAction = dumpFirst.build();
 
-        TrajectoryActionBuilder park = placeFirst.endTrajectory().fresh()
+        TrajectoryActionBuilder pickupFirst = dumpFirst.endTrajectory().fresh()
+                .setTangent(Math.toRadians(0))
+                .splineToLinearHeading(firstPickupWP1, Math.toRadians(90))
+                .splineToLinearHeading(firstPickupWP2, Math.toRadians(90));
+
+        Action pickupFirstAction = pickupFirst.build();
+
+        TrajectoryActionBuilder dumpSecond = pickupFirst.endTrajectory().fresh()
                 .setTangent(Math.toRadians(-90))
-                .splineToConstantHeading(parkWaypoint1.position, Math.toRadians(90))
-                .splineToLinearHeading(parkWaypoint3, Math.toRadians(0));
+                .splineToLinearHeading(firstDumpPose, Math.toRadians(-135));
+
+        Action dumpSecondAction = dumpSecond.build();
+
+        TrajectoryActionBuilder pickupSecond = dumpSecond.endTrajectory().fresh()
+                .setTangent(Math.toRadians(90))
+                .turnTo(secondPickupWP1.heading)
+                .strafeTo(secondPickupWP2.position);
+
+        Action pickupSecondAction = pickupSecond.build();
+
+        TrajectoryActionBuilder dumpThird = pickupSecond.endTrajectory().fresh()
+                .setTangent(Math.toRadians(-90))
+                .splineToLinearHeading(firstDumpPose, Math.toRadians(-135));
+
+        Action dumpThirdAction = dumpThird.build();
+
+        TrajectoryActionBuilder pickupThird = dumpThird.endTrajectory().fresh()
+                .setTangent(Math.toRadians(90))
+                .turnTo(thirdPickupWP1.heading)
+                .strafeTo(thirdPickupWP2.position);
+
+        Action pickupThirdAction = pickupThird.build();
+
+        TrajectoryActionBuilder dumpFourth = pickupThird.endTrajectory().fresh()
+                .setTangent(Math.toRadians(-90))
+                .splineToLinearHeading(firstDumpPose, Math.toRadians(-135))
+                .turnTo(firstDumpPose.heading);
+
+        Action dumpFourthAction = dumpThird.build();
 
 
-        Action parkAction = placeFirst.build();
-
-//        TrajectoryActionBuilder grabOne = placeFirst.endTrajectory().fresh()
-//                .setTangent(Math.toRadians(-90))
-//                .splineToLinearHeading(firstPickupWaypoint1, firstPickupWaypoint1.heading)
-//                .lineToX(firstPickupWaypoint1.position.x-3);
-//
-//        Action grabOneAction = new ParallelAction(
-//                grabOne.build(),
-//                m_robot.intake.delayedHeadDrop()
-//        );
-//
-//        TrajectoryActionBuilder dump1 = grabOne.endTrajectory().fresh()
-//                .setTangent(-90)
-//                .splineToLinearHeading(dumpPose, Math.toRadians(-125));
-//
-//        Action dump1Action = new ParallelAction(
-//                new SequentialAction(
-//                        new SleepAction(0.5),
-//                        dump1.build()
-//                ),
-//                m_robot.intake.deliverToDump()
-//        );
-//
-//        TrajectoryActionBuilder grabTwo = dump1.endTrajectory().fresh()
-//                .setTangent(Math.toRadians(45))
-//                .splineToLinearHeading(secondPickupWaypoint1, Math.toRadians(-179.9));
-//
-//        Action grabTwoAction = new ParallelAction(
-//                grabOne.build(),
-//                m_robot.intake.delayedHeadDrop()
-//        );
-//
-//        TrajectoryActionBuilder dump2 = grabTwo.endTrajectory().fresh()
-//                .setTangent(-90)
-//                .splineToLinearHeading(dumpPose, Math.toRadians(-125));
-//
-//        Action dump2Action = new ParallelAction(
-//                new SequentialAction(
-//                        new SleepAction(0.5),
-//                        dump2.build()
-//                ),
-//                m_robot.intake.deliverToDump()
-//        );
-//
-//        TrajectoryActionBuilder grabThree = dump2.endTrajectory().fresh()
-//                .setTangent(Math.toRadians(45))
-//                .splineToLinearHeading(thirdPickupWaypoint1, Math.toRadians(-179.9));
-//
-//        Action grabThreeAction = new ParallelAction(
-//                grabOne.build(),
-//                m_robot.intake.delayedHeadDrop()
-//        );
-//
-//        TrajectoryActionBuilder dump3 = grabThree.endTrajectory().fresh()
-//                .setTangent(-90)
-//                .splineToLinearHeading(dumpPose, Math.toRadians(-125));
-//
-//        Action dump3Action = new ParallelAction(
-//                new SequentialAction(
-//                        new SleepAction(0.5),
-//                        dump3.build()
-//                ),
-//                m_robot.intake.deliverToDump()
-//        );
-
-
+        m_robot.lift.zeroLift();
 
         telemetry.addLine("Starting Position");
         telemetry.update();
@@ -131,50 +98,93 @@ public class Bucket_Side extends LinearOpMode {
 
         if (isStopRequested()) return;
 
-        m_robot.lift.elevatorPositionByConstant(Lift.LiftPositions.HIGH_CLIP);
+        //Score Preload
+        m_robot.intake.setExtPosition(m_robot.intake.safeExt);
+        sleep(0);
 
-        Actions.runBlocking(placeFirstAction);
+        m_robot.lift.elevatorPositionByConstant(Lift.LiftPositions.HIGH_BUCKET);
 
-        m_robot.lift.autoClip(Lift.LiftPositions.HIGH_CLIP_RELEASE);
-        m_robot.lift.elevatorPositionControl(0);
-        m_robot.lift.intakeOff();
+        Actions.runBlocking(dumpFirstAction);
+        m_robot.intake.setPickup();
 
-        Actions.runBlocking(parkAction);
-        m_robot.lift.setFlip();
-        sleep(3000);
+        sleep(900);
 
-//        //First pickup and deliver
-//        m_robot.intake.intakeIn();
-//        Actions.runBlocking(grabOneAction);
-//
-//        m_robot.intake.intakeIn();
-//
-//        Actions.runBlocking(dump1Action);
-//        m_robot.deliverHigh();
-//
-//        //Second pickup and deliver
-//        Actions.runBlocking(grabTwoAction);
-//
-//        m_robot.intake.intakeIn();
-//
-//        Actions.runBlocking(dump2Action);
-//        m_robot.deliverHigh();
+        m_robot.lift.timedFlip();
 
-//        //Third pickup and deliver
-//        Actions.runBlocking(grabThreeAction);
-//
-//        m_robot.intake.intakeIn();
-//
-//        Actions.runBlocking(dump3Action);
-//        m_robot.deliverHigh();
+        //Pickup First
+        m_robot.intake.intakeIn();
+
+        Actions.runBlocking(pickupFirstAction);
+        m_robot.intake.setPackaged();
+        m_robot.intake.intakeOff();
 
 
+        //Score second
+        Actions.runBlocking(new ParallelAction(
+                dumpSecondAction,
+                new SequentialAction(
+                        m_robot.intake.deliverToDump(),
+                        new InstantAction(() -> m_robot.lift.elevatorPositionByConstant(Lift.LiftPositions.HIGH_BUCKET))
+                )
+        ));
 
+        m_robot.intake.intakeOff();
+        sleep(2000);
+        m_robot.intake.setPickup();
+        m_robot.intake.setExtPosition(m_robot.intake.safeExt-50);
+        m_robot.lift.timedFlip();
 
+        //Pickup second
+        m_robot.intake.intakeIn();
+        Actions.runBlocking(new ParallelAction(
+                pickupSecondAction,
+                new InstantAction(() -> m_robot.intake.setExtPosition(m_robot.intake.safeExt+100))
+        ));
+        m_robot.intake.setPackaged();
+        m_robot.intake.intakeOff();
 
+        //Score third
+        Actions.runBlocking(new ParallelAction(
+                dumpThirdAction,
+                new SequentialAction(
+                        m_robot.intake.deliverToDump(),
+                        new InstantAction(() -> m_robot.lift.elevatorPositionByConstant(Lift.LiftPositions.HIGH_BUCKET))
+                )
+        ));
 
+        m_robot.intake.intakeOff();
+        sleep(2000);
+        m_robot.intake.setPickup();
+        m_robot.intake.setExtPosition(m_robot.intake.safeExt-50);
+        m_robot.lift.timedFlip();
+
+        //Pickup third
+        m_robot.intake.intakeIn();
+        Actions.runBlocking(new ParallelAction(
+                pickupThirdAction,
+                new InstantAction(() -> m_robot.intake.setExtPosition(m_robot.intake.safeExt+100))
+        ));
+        m_robot.intake.setPackaged();
+        m_robot.intake.intakeOff();
+
+        Actions.runBlocking(new ParallelAction(
+                dumpFourthAction,
+                new SequentialAction(
+                        m_robot.intake.deliverToDump(),
+                        new InstantAction(() -> m_robot.lift.elevatorPositionByConstant(Lift.LiftPositions.HIGH_BUCKET))
+                )
+        ));
+
+        m_robot.intake.intakeOff();
+        sleep(2000);
+        m_robot.intake.setExtPosition(m_robot.intake.safeExt-50);
+        m_robot.lift.timedFlip();
+
+        sleep(2);
 
 
 
     }
+
+
 }

@@ -1,5 +1,9 @@
 package org.firstinspires.ftc.teamcode.classes;
 
+import androidx.annotation.NonNull;
+
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ftc.Encoder;
 import com.acmerobotics.roadrunner.ftc.OverflowEncoder;
 import com.acmerobotics.roadrunner.ftc.RawEncoder;
@@ -26,32 +30,41 @@ public class Lift {
 
     public Servo flipper;
     public final double Flipper_Ready = 0.9;
-    public final double Flipper_Deliver = 0.3;
+    public final double Flipper_Deliver = 0.22;
 
     private int currentExt = 0;
     private int extStep = 5;
     private int minExt = 0;
     private int minSlowExt = 200;
     private int maxSlowExt = 3300;
-    private int maxExt = 3500;
+    private int maxExt = 4900;
 
-    //Elevator PIDF Values
-    public static double KV = 0.1;
-    public static double KP = 15;
-    public static double KvP = 8;
+//    //Elevator PIDF Values
+//    public static double KV = 0.5;
+//    public static double KP = 15;
+//    public static double KvP = 10;
+//    public static double KvD = 0;
+//    public static double KvI = 2.5;
+//    public static double KF = 1.0;
+
+    //Elevator PIDF Values worked for Bucket side
+    public static double KV = 2.5;
+    public static double KP = 25;
+    public static double KvP = 12;
     public static double KvD = 0;
     public static double KvI = 2.5;
     public static double KF = 1.0;
 
     //Lift positions
     public static enum LiftPositions {
-        HIGH_CLIP(3000),
-        HIGH_CLIP_RELEASE(2250),
+        HIGH_CLIP(2900),
+        HIGH_CLIP_RELEASE(2150),
         LOW_CLIP(1000),
         LOW_CLIP_RELEASE(900),
-        HIGH_BUCKET(4575),
+        HIGH_BUCKET(4750),
         LOW_BUCKET(1875),
-        CLIP_PICKUP(375);
+        CLIP_PICKUP(400),
+        CLIP_PICKUP_DONE(475);
 
         public final int position;
 
@@ -139,7 +152,7 @@ public class Lift {
     public void elevatorPositionControl(int position) {
         liftMotor.setTargetPosition(position);
         liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        liftMotor.setPower(0.8);
+        liftMotor.setPower(0.9);
     }
 
     public void elevatorPositionByConstant(LiftPositions constant) {
@@ -147,7 +160,11 @@ public class Lift {
     }
 
     public void holdElevator() {
-        elevatorPositionControl(liftMotor.getCurrentPosition());
+        int pos = liftMotor.getCurrentPosition();
+        elevatorPositionControl(pos);
+        if( pos < 0.5 * LiftPositions.CLIP_PICKUP.position){
+            liftMotor.setPower(0);
+        }
     }
 
     public void zeroLift() {
@@ -155,7 +172,7 @@ public class Lift {
     }
 
     public int getElevatorPosition() {
-        return liftMotor.getCurrentPosition();
+        return (int)liftEncoder.getPositionAndVelocity().position;
     }
 
     public boolean elevatorIsBusy() {
@@ -215,6 +232,41 @@ public class Lift {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    public boolean safeToDump(){
+        int pos = liftMotor.getCurrentPosition();
+        return pos < 200;
+    }
+
+    public void timedFlip(){
+        setFlip();
+        sleep(1750);
+        setFlipperReady();
+        sleep(250);
+        elevatorPositionControl(0);
+    }
+
+    //Actions
+    public Action grabBlock() {
+        return new Action() {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    intakeIn();
+                    initialized = true;
+                }
+
+                if (intakeCurrentSpike()) {
+                    elevatorPositionByConstant(LiftPositions.CLIP_PICKUP_DONE);
+                    return false; //Return false to end
+                } else {
+                    return true;
+                }
+            }
+        };
     }
 
 

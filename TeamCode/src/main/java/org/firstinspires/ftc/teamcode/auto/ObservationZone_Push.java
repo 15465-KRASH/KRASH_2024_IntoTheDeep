@@ -110,6 +110,7 @@ public class ObservationZone_Push extends LinearOpMode {
 
         Action parkAction = park.build();
 
+        m_robot.lift.zeroLift();
 
         telemetry.addLine("Starting Position");
         telemetry.update();
@@ -121,6 +122,7 @@ public class ObservationZone_Push extends LinearOpMode {
 
         Actions.runBlocking(placeFirstAction);
 
+        m_robot.intake.setExtPosition(m_robot.intake.safeExt);
         m_robot.lift.autoClip(Lift.LiftPositions.HIGH_CLIP_RELEASE);
         m_robot.lift.elevatorPositionByConstant(Lift.LiftPositions.CLIP_PICKUP);
         m_robot.lift.intakeOff();
