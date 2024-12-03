@@ -43,6 +43,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.classes.ButtonState;
+import org.firstinspires.ftc.teamcode.classes.HeadingStorage;
 import org.firstinspires.ftc.teamcode.classes.Lift;
 import org.firstinspires.ftc.teamcode.classes.RevColor;
 import org.firstinspires.ftc.teamcode.classes.Robot;
@@ -105,6 +106,8 @@ public class Drive extends LinearOpMode {
 
 
         m_robot.lift.setFlipperReady();
+
+        zeroOffset = HeadingStorage.zeroOffset;
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();

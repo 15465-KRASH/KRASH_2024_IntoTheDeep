@@ -81,7 +81,7 @@ public class Intake {
         PICKUP,
         DUMP,
         COBRA,
-        HOLD,
+        SAFE,
         LOWPRO;
     }
 
@@ -90,7 +90,7 @@ public class Intake {
     private HeadPos pickupPos = new HeadPos(0.70, 0.70, 0.65, 0.65);
     private HeadPos dumpPos = new HeadPos(0.1, 0.1, 0.05, 0.05);
     private HeadPos packagePos = new HeadPos(0.55, 0.55, 0.05, 0.05);
-    private HeadPos holdPos = new HeadPos(0.65, 0.65, 0.05, 0.05);
+    private HeadPos safePos = new HeadPos(0.55, 0.55, 0.15, 0.15);
     private HeadPos lowProPos = new HeadPos(0.5, 0.5, 0.4, 0.4);
 
 
@@ -170,6 +170,11 @@ public class Intake {
     public void setPackaged(){
         setHeadPos(packagePos);
         headPosition = HeadPosition.COBRA;
+    }
+
+    public void setHeadSafe(){
+        setHeadPos(safePos);
+        headPosition = HeadPosition.SAFE;
     }
 
     public HeadPosition getHeadPosition(){

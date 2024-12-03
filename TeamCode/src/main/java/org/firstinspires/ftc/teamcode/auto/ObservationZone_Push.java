@@ -2,7 +2,11 @@ package org.firstinspires.ftc.teamcode.auto;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
 import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -10,6 +14,7 @@ import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.classes.HeadingStorage;
 import org.firstinspires.ftc.teamcode.classes.Lift;
 import org.firstinspires.ftc.teamcode.classes.Robot;
 
@@ -20,6 +25,8 @@ public class ObservationZone_Push extends LinearOpMode {
 
     public void runOpMode() throws InterruptedException{
         Pose2d initialPose = new Pose2d(14.5, -62.5, Math.toRadians(-90));
+        HeadingStorage.zeroOffset = -initialPose.heading.log() - Math.toRadians(90);
+
         Pose2d firstClipPose = new Pose2d(new Vector2d(8,-32.5), Math.toRadians(-90));
         Pose2d firstPushWaypoint1 = new Pose2d(new Vector2d(36, -36), Math.toRadians(90));
         Pose2d firstPushWaypoint2 = new Pose2d(new Vector2d(36, -24), Math.toRadians(90));
@@ -120,9 +127,14 @@ public class ObservationZone_Push extends LinearOpMode {
 
         m_robot.lift.elevatorPositionByConstant(Lift.LiftPositions.HIGH_CLIP);
 
-        Actions.runBlocking(placeFirstAction);
+        Actions.runBlocking(new ParallelAction(
+                placeFirstAction,
+                new SequentialAction(
+                        new SleepAction(1),
+                        new InstantAction(m_robot.intake::setHeadSafe)
+                ))
+        );
 
-        m_robot.intake.setExtPosition(m_robot.intake.safeExt);
         m_robot.lift.autoClip(Lift.LiftPositions.HIGH_CLIP_RELEASE);
         m_robot.lift.elevatorPositionByConstant(Lift.LiftPositions.CLIP_PICKUP);
         m_robot.lift.intakeOff();

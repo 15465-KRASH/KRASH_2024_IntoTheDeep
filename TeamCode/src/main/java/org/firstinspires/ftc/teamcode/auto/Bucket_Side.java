@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.classes.HeadingStorage;
 import org.firstinspires.ftc.teamcode.classes.Lift;
 import org.firstinspires.ftc.teamcode.classes.Robot;
 
@@ -26,6 +27,8 @@ public class Bucket_Side extends LinearOpMode {
 
     public void runOpMode() throws InterruptedException {
         Pose2d initialPose = new Pose2d(-33, -62.5, Math.toRadians(0));
+        HeadingStorage.zeroOffset = -initialPose.heading.log() - Math.toRadians(90);
+
         Pose2d veryfirstDumpPose = new Pose2d(new Vector2d(-53, -53), Math.toRadians(45));
         Pose2d firstDumpPose = new Pose2d(new Vector2d(-53, -53), Math.toRadians(50));
 
