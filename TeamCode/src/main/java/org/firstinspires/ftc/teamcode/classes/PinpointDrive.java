@@ -107,6 +107,7 @@ public class PinpointDrive extends MecanumDrive {
         pinpoint.update();
         pose = pinpoint.getPositionRR();
         lastPinpointPose = pose;
+        HeadingStorage.startingPose = pose;
 
         // RR standard
         poseHistory.add(pose);

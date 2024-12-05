@@ -204,6 +204,15 @@ public class Intake {
         extensionMotor.setPower(finalPower);
     }
 
+    public void runExtensionOveride(){
+        extensionMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        extensionMotor.setPower(-0.25);
+    }
+
+    public void resetSlide(){
+        extensionMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    }
+
     public boolean safeToDump(){
         return extensionMotor.getCurrentPosition() > safeExt;
     }
@@ -253,15 +262,19 @@ public class Intake {
         switch (sampleColor) {
             case YELLOW:
                 currentLEDAction = noLight();
+                ledMode = LEDMode.SLOW_BLINK;
                 break;
             case RED:
                 currentLEDAction = ledSolidRed();
+                ledMode = LEDMode.SOLID;
                 break;
             case BLUE:
                 currentLEDAction = ledSlowBlinkRed();
+                ledMode = LEDMode.FAST_BLINK;
                 break;
             case NONE:
                 currentLEDAction = noLight();
+                ledMode = LEDMode.OFF;
                 break;
         }
         return sampleColor;
@@ -320,15 +333,84 @@ public class Intake {
         );
     }
 
+    public void setLEDMode(LEDMode mode){
+        ledMode = mode;
+    }
+
     public void ledAllOff(){
         topLED_red.off();
         topLED_green.off();
     }
 
     //Actions
+    public Action ledControl(){
+        return new Action() {
+            private boolean initialized = false;
+            double lastTime;
+            boolean on = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    ledAllOff();
+                    blinkTimer = new ElapsedTime();
+                    blinkTimer.reset();
+                    lastTime = blinkTimer.seconds();
+                    initialized = true;
+                }
+
+                switch (ledMode){
+                    case OFF:
+                        ledAllOff();
+                        break;
+                    case SOLID:
+                        topLED_red.on();
+                        topLED_green.off();
+                        break;
+                    case SLOW_BLINK:
+                        if(blinkTimer.seconds() - lastTime >= 0.75){
+                            if(on){
+                                topLED_red.off();
+                                on = false;
+                            } else {
+                                topLED_red.on();
+                                on = true;
+                            }
+                            lastTime = blinkTimer.seconds();
+                        }
+                        break;
+                    case FAST_BLINK:
+                        if(blinkTimer.seconds() - lastTime >= 0.1){
+                            if(on){
+                                topLED_red.off();
+                                on = false;
+                            } else {
+                                topLED_red.on();
+                                on = true;
+                            }
+                            lastTime = blinkTimer.seconds();
+                        }
+                        break;
+                    case AMBER:
+                        topLED_red.on();
+                        topLED_green.on();
+                        break;
+                    case GREEN:
+                        topLED_red.off();
+                        topLED_green.on();
+                        break;
+                }
+
+                return true; //Return false to end
+            }
+        };
+    }
+
+
     public Action ledSolidRed() {
         return new Action() {
             private boolean initialized = false;
+
 
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {

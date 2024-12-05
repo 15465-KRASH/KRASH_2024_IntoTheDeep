@@ -25,7 +25,7 @@ public class ObservationZone_Push extends LinearOpMode {
 
     public void runOpMode() throws InterruptedException{
         Pose2d initialPose = new Pose2d(14.5, -62.5, Math.toRadians(-90));
-        HeadingStorage.zeroOffset = -initialPose.heading.log() - Math.toRadians(90);
+        HeadingStorage.zeroOffset = initialPose.heading.log() - Math.toRadians(90);
 
         Pose2d firstClipPose = new Pose2d(new Vector2d(8,-32.5), Math.toRadians(-90));
         Pose2d firstPushWaypoint1 = new Pose2d(new Vector2d(36, -36), Math.toRadians(90));
@@ -120,6 +120,7 @@ public class ObservationZone_Push extends LinearOpMode {
         m_robot.lift.zeroLift();
 
         telemetry.addLine("Starting Position");
+        telemetry.addData("Zero Offset", Math.toDegrees(HeadingStorage.zeroOffset));
         telemetry.update();
         waitForStart();
 
@@ -145,8 +146,11 @@ public class ObservationZone_Push extends LinearOpMode {
 
         m_robot.lift.intakeIn();
 
-        Actions.runBlocking(pickupOneAction);
-        sleep(500);
+        Actions.runBlocking(new ParallelAction(
+                pickupOneAction,
+                m_robot.lift.grabBlock()
+        ));
+//        sleep(500);
 
         m_robot.lift.intakeOff();
         m_robot.lift.elevatorPositionByConstant(Lift.LiftPositions.HIGH_CLIP);
@@ -159,8 +163,11 @@ public class ObservationZone_Push extends LinearOpMode {
 
 
         m_robot.lift.intakeIn();
-        Actions.runBlocking(pickupTwoAction);
-        sleep(500);
+        Actions.runBlocking(new ParallelAction(
+                pickupTwoAction,
+                m_robot.lift.grabBlock()
+        ));
+//        sleep(500);
         m_robot.lift.intakeOff();
         m_robot.lift.elevatorPositionByConstant(Lift.LiftPositions.HIGH_CLIP);
 
@@ -169,8 +176,10 @@ public class ObservationZone_Push extends LinearOpMode {
         m_robot.lift.elevatorPositionByConstant(Lift.LiftPositions.CLIP_PICKUP);
         m_robot.lift.intakeOff();
 
+        HeadingStorage.startingPose = parkPose;
         m_robot.drive.setCoast();
         Actions.runBlocking(parkAction);
+        HeadingStorage.startingPose = m_robot.drive.pinpoint.getPositionRR();
 
 
 

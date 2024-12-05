@@ -31,12 +31,15 @@ package org.firstinspires.ftc.teamcode;
 
 import android.widget.Button;
 
+import androidx.annotation.NonNull;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Rotation2d;
+import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -44,7 +47,9 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.classes.ButtonState;
 import org.firstinspires.ftc.teamcode.classes.HeadingStorage;
+import org.firstinspires.ftc.teamcode.classes.Intake;
 import org.firstinspires.ftc.teamcode.classes.Lift;
+import org.firstinspires.ftc.teamcode.classes.MecanumDrive;
 import org.firstinspires.ftc.teamcode.classes.RevColor;
 import org.firstinspires.ftc.teamcode.classes.Robot;
 
@@ -68,6 +73,7 @@ import java.util.List;
 @TeleOp(name="Drive", group="Comp")
 //@Disabled
 public class Drive extends LinearOpMode {
+    Robot m_robot;
 
     @Override
     public void runOpMode() {
@@ -75,7 +81,7 @@ public class Drive extends LinearOpMode {
         List<Action> runningActions = new ArrayList<>();
 
         TelemetryPacket packet = new TelemetryPacket();
-        Robot m_robot = new Robot(hardwareMap, telemetry, new Pose2d(0,0,0));
+        m_robot = new Robot(hardwareMap, telemetry, HeadingStorage.startingPose);
 
         double powerScale=1;
 
@@ -101,13 +107,18 @@ public class Drive extends LinearOpMode {
         ButtonState zeroField = new ButtonState(gamepad1, ButtonState.Button.dpad_down);
         ButtonState fieldRelOn = new ButtonState(gamepad1, ButtonState.Button.y);
         ButtonState fieldRelOff = new ButtonState(gamepad1, ButtonState.Button.a);
+        ButtonState turn180Butt = new ButtonState(gamepad1, ButtonState.Button.dpad_up);
 
         ButtonState autoDump = new ButtonState(gamepad2, ButtonState.Button.b);
 
 
         m_robot.lift.setFlipperReady();
 
-        zeroOffset = HeadingStorage.zeroOffset;
+        zeroOffset = Math.toRadians(-90);
+        m_robot.intake.setLEDMode(Intake.LEDMode.SOLID);
+        runningActions.add(m_robot.intake.ledControl());
+
+
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -123,7 +134,7 @@ public class Drive extends LinearOpMode {
 
 
             m_robot.intake.getSampleColor();
-//            runningActions.add(m_robot.intake.currentLEDAction);
+
 
             if (gamepad1.right_bumper) {
                 powerScale=1;
@@ -164,19 +175,31 @@ public class Drive extends LinearOpMode {
             telemetry.addData("Strafe", strafe);
 
             double rotation = Math.pow(-gamepad1.right_stick_x, 3) * powerScale;
-
             driveControl = new PoseVelocity2d(input, rotation);
 
             if(fieldRel){
                 driveControl = new PoseVelocity2d(rotatedInput, rotation);
             }
 
-            m_robot.drive.setDrivePowers(driveControl);
+            if (turn180Butt.newPress()) {
+                Pose2d currentPose = m_robot.drive.pinpoint.getPositionRR();
+                Action turn =
+                        m_robot.drive.actionBuilder(currentPose)
+                                .turn(Math.toRadians(195))
+                                .build();
+
+                runningActions.add(turn);
+            }
+
+            if (!turn180Butt.buttonHeld) {
+                m_robot.drive.setDrivePowers(driveControl);
+            }
+
             if (zeroLift.newPress()) {
                 m_robot.lift.zeroLift();
             }
 
-            //TODO: Add spin buttons
+
 
             //Intake Controls
 //            if (Math.abs(gamepad2.right_stick_y) > 0.05) {
@@ -194,6 +217,13 @@ public class Drive extends LinearOpMode {
                 m_robot.intake.holdExtension();
                 extensionInHold = true;
                 extensionManualOp = false;
+            }
+
+            if (gamepad2.right_stick_button && gamepad2.left_stick_button) {
+                m_robot.intake.resetSlide();
+            } else if (gamepad2.right_stick_button) {
+                m_robot.intake.setPackaged();
+                m_robot.intake.runExtensionOveride();
             }
 
 
@@ -311,5 +341,27 @@ public class Drive extends LinearOpMode {
             telemetry.update();
 
         }
+
     }
+
+//    public Action turn180() {
+//        return new Action() {
+//            private boolean initialized = false;
+//            double startingHeading;
+//
+//            @Override
+//            public boolean run(@NonNull TelemetryPacket packet) {
+//                if (!initialized) {
+//                    startingHeading = m_robot.drive.pinpoint.getPositionRR().heading.log();
+//                    initialized = true;
+//                }
+//
+//
+//
+//                return !ledStop; //Return false to end
+//            }
+//        };
+//    }
+
+
 }

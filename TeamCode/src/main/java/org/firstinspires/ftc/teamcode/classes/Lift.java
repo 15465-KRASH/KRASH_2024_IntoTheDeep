@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
@@ -26,7 +27,7 @@ public class Lift {
 
     public DcMotorEx intakeMotor;
 
-    public final double INTAKE_CURRENT_LIMIT = 2.0;
+    public final double INTAKE_CURRENT_LIMIT = 1.75;
 
     public Servo flipper;
     public final double Flipper_Ready = 0.9;
@@ -35,23 +36,23 @@ public class Lift {
     private int currentExt = 0;
     private int extStep = 5;
     private int minExt = 0;
-    private int minSlowExt = 200;
+    private int minSlowExt = 350;
     private int maxSlowExt = 3300;
     private int maxExt = 4900;
 
-//    //Elevator PIDF Values
+////    //Elevator PIDF Values
+//    public static double KP = 10;
 //    public static double KV = 0.5;
-//    public static double KP = 15;
-//    public static double KvP = 10;
+//    public static double KvP = 15;
 //    public static double KvD = 0;
-//    public static double KvI = 2.5;
+//    public static double KvI = 0.5;
 //    public static double KF = 1.0;
 
     //Elevator PIDF Values worked for Bucket side
-    public static double KV = 2.5;
+    public static double KV = 0.1;
     public static double KP = 25;
-    public static double KvP = 12;
-    public static double KvD = 0;
+    public static double KvP = 6;
+    public static double KvD = 0.0;
     public static double KvI = 2.5;
     public static double KF = 1.0;
 
@@ -107,7 +108,7 @@ public class Lift {
 
     public void setExtPosition(int target){
         liftMotor.setTargetPosition(target);
-        liftMotor.setPower(1);
+        liftMotor.setPower(0.9);
     }
 
     public int getCurrentExt(){
@@ -150,9 +151,14 @@ public class Lift {
 
 
     public void elevatorPositionControl(int position) {
+        double power = 0.9;
+        double error = liftMotor.getCurrentPosition() - position;
         liftMotor.setTargetPosition(position);
         liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        liftMotor.setPower(0.9);
+//        if ((Math.abs(error) < 500) || error > 0) {
+//            power = 0.4;
+//        }
+        liftMotor.setPower(power);
     }
 
     public void elevatorPositionByConstant(LiftPositions constant) {
@@ -213,7 +219,7 @@ public class Lift {
 
     public void autoClip(LiftPositions position){
         elevatorPositionByConstant(position);
-        sleep(800);
+        sleep(500);
         intakeOut();
         sleep(200);
     }
@@ -251,20 +257,40 @@ public class Lift {
     public Action grabBlock() {
         return new Action() {
             private boolean initialized = false;
+            ElapsedTime stallTimer = new ElapsedTime();
+            ElapsedTime totalTime = new ElapsedTime();
+
+            boolean complete = false;
+            boolean endLoop = false;
 
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
                     intakeIn();
                     initialized = true;
+                    totalTime.reset();
                 }
 
-                if (intakeCurrentSpike()) {
-                    elevatorPositionByConstant(LiftPositions.CLIP_PICKUP_DONE);
-                    return false; //Return false to end
-                } else {
-                    return true;
+                if (!endLoop && totalTime.seconds() > 0.5) {
+                    if (intakeCurrentSpike()) {
+                        stallTimer.reset();
+                        endLoop = true;
+                    }
                 }
+
+
+                if (stallTimer.seconds() >= 0.5 && endLoop) {
+                    complete = true;
+                    intakeOff();
+                    elevatorPositionByConstant(LiftPositions.CLIP_PICKUP_DONE);
+                }
+
+                if(totalTime.seconds() > 5){
+                    complete = true;
+                }
+
+                telemetry.update();
+                return !complete;
             }
         };
     }

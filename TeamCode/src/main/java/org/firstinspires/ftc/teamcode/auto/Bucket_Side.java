@@ -27,10 +27,10 @@ public class Bucket_Side extends LinearOpMode {
 
     public void runOpMode() throws InterruptedException {
         Pose2d initialPose = new Pose2d(-33, -62.5, Math.toRadians(0));
-        HeadingStorage.zeroOffset = -initialPose.heading.log() - Math.toRadians(90);
+        HeadingStorage.zeroOffset = initialPose.heading.log() - Math.toRadians(90);
 
-        Pose2d veryfirstDumpPose = new Pose2d(new Vector2d(-53, -53), Math.toRadians(45));
-        Pose2d firstDumpPose = new Pose2d(new Vector2d(-53, -53), Math.toRadians(50));
+        Pose2d veryfirstDumpPose = new Pose2d(new Vector2d(-52.1, -52.1), Math.toRadians(45));
+        Pose2d firstDumpPose = new Pose2d(new Vector2d(-52.5, -52.5), Math.toRadians(50));
 
         Pose2d firstPickupWP1 = new Pose2d(new Vector2d(-48, -50), Math.toRadians(90));
         Pose2d firstPickupWP2 = new Pose2d(new Vector2d(-48, -40), Math.toRadians(90));
@@ -96,6 +96,7 @@ public class Bucket_Side extends LinearOpMode {
         m_robot.lift.zeroLift();
 
         telemetry.addLine("Starting Position");
+        telemetry.addData("Zero Offset", Math.toDegrees(HeadingStorage.zeroOffset));
         telemetry.update();
         waitForStart();
 
@@ -178,6 +179,7 @@ public class Bucket_Side extends LinearOpMode {
                 )
         ));
 
+        HeadingStorage.startingPose = m_robot.drive.pinpoint.getPositionRR();
         m_robot.intake.intakeOff();
         sleep(2000);
         m_robot.intake.setExtPosition(m_robot.intake.safeExt-50);
